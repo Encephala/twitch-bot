@@ -7,3 +7,4 @@ edition = "2021"
 dotenv = "0.15.0"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
 serde = { version = "1.0.210", features = ["derive"] }
+websocket = "0.27.1"
