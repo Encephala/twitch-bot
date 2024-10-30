@@ -19,14 +19,16 @@ struct ApiKeyResponse {
 pub fn request_api_key() -> String {
     let (id, secret) = load_env_variables();
 
-    let params = [("client_id", id.as_str()),
+    let params = [
+        ("client_id", id.as_str()),
         ("client_secret", secret.as_str()),
         ("grant_type", "client_credentials"),
     ];
 
     let client = reqwest::blocking::Client::new();
 
-    let response = client.post(TWITCH_ACCESS_TOKEN_URL)
+    let response = client
+        .post(TWITCH_ACCESS_TOKEN_URL)
         .form(&params)
         .send()
         .expect("Failed to get OAuth token")

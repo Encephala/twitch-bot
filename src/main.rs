@@ -1,11 +1,11 @@
 #![allow(clippy::needless_return)]
-use core::str;
-
-mod init;
 mod client;
+mod init;
 
 fn main() {
     let token = init::request_api_key();
 
-    println!("Got token '{token}'");
+    let mut client = client::Client::new();
+
+    let _ = client.close();
 }
