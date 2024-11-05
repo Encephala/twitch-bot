@@ -1,6 +1,6 @@
 use std::{any::Any, net::TcpStream};
 
-use websocket::{self as ws, ws::dataframe::DataFrame, ClientBuilder};
+use websocket::{self as ws, ClientBuilder};
 
 pub struct Client {
     client: ws::sync::Client<ws::native_tls::TlsStream<TcpStream>>,
@@ -34,8 +34,11 @@ impl Client {
             .recv_message()
             .expect("Didn't receive Ping message");
 
-        ws::Message::from(message)
-            .into_pong()
+        let mut response = ws::Message::from(message);
+        response.into_pong().expect("Received message wasn't Ping");
+
+        self.client
+            .send_message(&response)
             .expect("Failed to send Pong message");
     }
 
