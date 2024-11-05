@@ -1,4 +1,4 @@
-const ENV_NAME_ID: &str = "TWITCH_CLIENT_ID";
+pub const ENV_NAME_ID: &str = "TWITCH_CLIENT_ID";
 const ENV_NAME_SECRET: &str = "TWITCH_CLIENT_SECRET";
 const TWITCH_ACCESS_TOKEN_URL: &str = "https://id.twitch.tv/oauth2/token";
 
@@ -19,6 +19,8 @@ struct ApiKeyResponse {
 pub fn request_api_key() -> String {
     let (id, secret) = load_env_variables();
 
+    // TODO: I have to get a user access token, not an app access token
+    // I think
     let params = [
         ("client_id", id.as_str()),
         ("client_secret", secret.as_str()),
@@ -31,7 +33,9 @@ pub fn request_api_key() -> String {
         .post(TWITCH_ACCESS_TOKEN_URL)
         .form(&params)
         .send()
-        .expect("Failed to get OAuth token")
+        .expect("Failed to get OAuth token");
+
+    let response = response
         .json::<ApiKeyResponse>()
         .expect("Response didn't contain an access token");
 

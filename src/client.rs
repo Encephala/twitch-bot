@@ -56,17 +56,17 @@ impl Client {
 
     // TODO Fix return type (error)
     // TODO better error handling
-    pub fn receive_message(&mut self) -> Result<Message, Box<dyn Any>> {
+    pub fn receive_message(&mut self) -> Result<ReceivedWebsocketMessage, String> {
         let raw_message = self.client.recv_message().expect("Failed to get message");
 
-        let message: Message = serde_json::from_str(
-            String::from_utf8(raw_message.take_payload())
-                .expect("Response wasn't contain valid UTF-8")
-                .as_str(),
-        )
-        .expect("Failed to deserialize message");
+        if let ws::OwnedMessage::Text(text) = raw_message {
+            let message: ReceivedWebsocketMessage =
+                serde_json::from_str(&text).expect("Failed to deserialize message");
 
-        return Ok(message);
+            return Ok(message);
+        }
+
+        return Err(format!("Received message wasn't text but: {raw_message:?}"));
     }
 
     pub fn close(&mut self) -> Result<(), Box<dyn Any>> {
@@ -74,10 +74,14 @@ impl Client {
 
         return Ok(());
     }
+
+    pub fn get_session_id(&self) -> Option<String> {
+        return self.session_info.as_ref().map(|info| info.id.clone());
+    }
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct Message {
+pub struct ReceivedWebsocketMessage {
     metadata: Metadata,
     payload: serde_json::Map<String, serde_json::Value>,
 }
