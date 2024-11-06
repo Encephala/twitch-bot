@@ -59,6 +59,7 @@ impl Client {
     pub fn receive_message(&mut self) -> Result<ReceivedWebsocketMessage, String> {
         let raw_message = self.client.recv_message().expect("Failed to get message");
 
+        // TODO: Not force this to be a text message, properly handle keepalive/close etc.
         if let ws::OwnedMessage::Text(text) = raw_message {
             let message: ReceivedWebsocketMessage =
                 serde_json::from_str(&text).expect("Failed to deserialize message");
@@ -66,7 +67,9 @@ impl Client {
             return Ok(message);
         }
 
-        return Err(format!("Received message wasn't text but: {raw_message:?}"));
+        dbg!(&raw_message);
+
+        todo!("actually handling websocket messages");
     }
 
     pub fn close(&mut self) -> Result<(), Box<dyn Any>> {

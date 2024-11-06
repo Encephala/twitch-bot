@@ -5,9 +5,41 @@ mod init;
 use serde_json::{Map, Value};
 
 fn main() {
-    let token = init::request_api_key();
+    let (client_id, user_access_token) = init::get_user_access_token();
 
     let mut client = client::Client::new();
+
+    // Validate token
+    let validation_response = reqwest::blocking::Client::new()
+        .get("https://id.twitch.tv/oauth2/validate")
+        .bearer_auth(&user_access_token)
+        .send()
+        .expect("Failed to validate token");
+
+    println!(
+        "User token validation response: {}",
+        validation_response
+            .text()
+            .expect("Validation response didn't contain text")
+    );
+
+    // Get app access token
+    let app_access_token = init::get_app_access_token();
+
+    println!("App token: {app_access_token}");
+
+    let validation_response = reqwest::blocking::Client::new()
+        .get("https://id.twitch.tv/oauth2/validate")
+        .bearer_auth(&app_access_token)
+        .send()
+        .expect("Failed to validate token");
+
+    println!(
+        "App token validation response: {}",
+        validation_response
+            .text()
+            .expect("Validation response didn't contain text")
+    );
 
     // beun beun
     let mut eventsub_message_transport = Map::new();
@@ -41,8 +73,8 @@ fn main() {
 
     let request = reqwest::blocking::Client::new()
         .post("https://api.twitch.tv/helix/eventsub/subscriptions")
-        .bearer_auth(token)
-        .header("Client-Id", std::env::var(init::ENV_NAME_ID).unwrap())
+        .bearer_auth(&app_access_token)
+        .header("Client-Id", client_id)
         .header("Content-Type", "application/json")
         .json(&eventsub_message)
         .send()
